@@ -1,59 +1,458 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Profile</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Photo Editor (HTML / CSS / JS)</title>
+  <style>
+    :root{
+      --bg:#0f1724; --panel:#0b1220; --muted:#98a0b3; --accent:#7c5cff; --glass: rgba(255,255,255,0.03);
+      --card-radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,#071021 0%, #0f1724 100%);color:#e6eef8;display:flex;align-items:stretch;padding:28px}
+
+    .app{width:100%;max-width:1200px;margin:auto;display:grid;grid-template-columns:320px 1fr;gap:20px}
+
+    /* Sidebar */
+    .panel{background:linear-gradient(180deg,var(--panel), #071425);padding:18px;border-radius:var(--card-radius);box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    h1{font-size:18px;margin:0 0 12px}
+    .controls{display:flex;flex-direction:column;gap:12px}
+    .control{background:var(--glass);padding:10px;border-radius:12px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type="range"]{width:100%}
+    .row{display:flex;gap:8px;align-items:center}
+    .btn{background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),#5fd0ff);color:#061226;border:0}
+    .small{font-size:12px;padding:6px 8px}
+    .muted{color:var(--muted);font-size:13px}
+
+    /* Canvas area */
+    .stage{display:flex;flex-direction:column;gap:12px}
+    .canvas-wrap{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:14px;border-radius:12px;display:flex;justify-content:center;align-items:center;min-height:520px}
+    canvas{max-width:100%;height:auto;border-radius:8px;box-shadow:0 10px 40px rgba(2,6,23,0.7)}
+
+    .toolbar{display:flex;justify-content:space-between;gap:8px}
+    .left, .right{display:flex;gap:8px;align-items:center}
+    .file-input{display:none}
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px}
+
+    /* responsive */
+    @media (max-width:900px){
+      .app{grid-template-columns:1fr;}
+      .canvas-wrap{min-height:360px}
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <aside class="panel card">
+      <h1>Photo Editor</h1>
+      <div class="muted">Upload an image and edit using the controls below.</div>
+      <div style="height:12px"></div>
 
-    <div class="container">
+      <div class="controls">
+        <div class="control">
+          <label for="file">Upload Image</label>
+          <div class="row" style="gap:10px">
+            <input id="file" class="file-input" type="file" accept="image/*">
+            <button id="uploadBtn" class="btn">Choose file</button>
+            <button id="resetAll" class="btn small">Reset</button>
+          </div>
+          <div style="height:8px"></div>
+          <div class="muted">Tip: try high-resolution photos for best results.</div>
+        </div>
 
-        <!-- Profile Picture Section -->
-<section class="profile-picture">
-    <img src="https://www.arsenal.com/sites/default/files/styles/large_16x9/public/images/AP023912_GiMoR86l%20Cropped_cfbmgufe.jpg?h=7b2eeb5a&auto=webp&itok=VEstXzWn" alt="gyokeres">
-</section>
+        <div class="control">
+          <label>Filters</label>
+          <div style="display:grid;gap:10px">
+            <div>
+              <label class="muted">Brightness <span id="val-bright" style="float:right">100%</span></label>
+              <input id="brightness" type="range" min="0" max="200" value="100">
+            </div>
+            <div>
+              <label class="muted">Contrast <span id="val-contrast" style="float:right">100%</span></label>
+              <input id="contrast" type="range" min="0" max="200" value="100">
+            </div>
+            <div>
+              <label class="muted">Saturation <span id="val-sat" style="float:right">100%</span></label>
+              <input id="saturate" type="range" min="0" max="200" value="100">
+            </div>
+            <div>
+              <label class="muted">Grayscale <span id="val-gray" style="float:right">0%</span></label>
+              <input id="grayscale" type="range" min="0" max="100" value="0">
+            </div>
+            <div>
+              <label class="muted">Sepia <span id="val-sepia" style="float:right">0%</span></label>
+              <input id="sepia" type="range" min="0" max="100" value="0">
+            </div>
+            <div>
+              <label class="muted">Blur <span id="val-blur" style="float:right">0px</span></label>
+              <input id="blur" type="range" min="0" max="10" value="0">
+            </div>
+          </div>
+        </div>
 
-        <header>
-            <h1>Hi, I'm <span>Teddy</span></h1>
-        </header>
+        <div class="control">
+          <label>Transforms</label>
+          <div class="row">
+            <button id="rotateLeft" class="btn">⟲ Rotate Left</button>
+            <button id="rotateRight" class="btn">⟳ Rotate Right</button>
+          </div>
+          <div style="height:8px"></div>
+          <div class="row">
+            <button id="flipH" class="btn">⇋ Flip H</button>
+            <button id="flipV" class="btn">⇅ Flip V</button>
+          </div>
+        </div>
 
-        <section class="about">
-            <h2>About Me</h2>
-            <p>
-                I am a student at <strong>Ringa Boys High School</strong>, and this is my 
-                personal page. I love learning new things and building creative projects.
-            </p>
-        </section>
+        <div class="control">
+          <label>Export</label>
+          <div class="row">
+            <button id="downloadPng" class="btn primary">Download PNG</button>
+            <button id="downloadJpg" class="btn">Download JPG</button>
+          </div>
+        </div>
 
-        <section class="details">
-            <h2>Personal Details</h2>
-            <ul>
-                <li><strong>Karachuonyo:</strong> Kisumu / Kenya</li>
-                <li><strong>First Project:</strong> My Portfolio</li>
-            </ul>
-        </section>
+      </div>
+    </aside>
 
-        <section class="hobbies">
-            <h2>My Hobbies</h2>
-            <ul>
-                <li>Soccer</li>
-                <li>Video games</li>
-                <li>Traveling</li>
-                <li>Reading</li>
-            </ul>
-        </section>
-        <section class="contact">
-    <h2>Contact Me</h2>
-    <ul>
-        <li><strong>Email:</strong> odembateddy@gmail.com</li>
-        <li><strong>Facebook:</strong> Teddy Lee</li>
-        <li><strong>Instagram:</strong> @Prince Dybala 254</li>
-    </ul>
-</section>
+    <main class="stage">
+      <div class="card toolbar">
+        <div class="left">
+          <div class="muted">Preview</div>
+        </div>
+        <div class="right">
+          <div class="muted">No image loaded</div>
+        </div>
+      </div>
 
+      <div class="canvas-wrap card">
+        <div class="control">
+  <label>Add Text</label>
+
+  <div style="display:grid; gap:10px">
+    <div>
+      <label class="muted">Text</label>
+      <input id="text-input" type="text" placeholder="Type something…" style="width:100%; padding:6px; border-radius:6px; border:1px solid #333;">
     </div>
 
+    <div>
+      <label class="muted">Text Color</label>
+      <input id="text-color" type="color" value="#ffffff" style="width:100%">
+    </div>
+
+    <div>
+      <label class="muted">Text Size</label>
+      <input id="text-size" type="number" value="32" min="8" max="200" style="width:100%; padding:6px; border-radius:6px; border:1px solid #333;">
+    </div>
+
+    <button id="add-text-btn" class="btn primary">Add Text</button>
+  </div>
+</div>
+
+        <canvas id="canvas" width="900" height="600"></canvas>
+      </div>
+      <div class="url-loader">
+  <input type="text" id="image-url" placeholder="Paste image URL…" />
+  <button id="load-url">Load URL</button>
+</div>
+
+
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="muted">Built with HTML, CSS &amp; JavaScript (Canvas API)</div>
+        <div>
+          <button id="downloadSmall" class="btn small">Quick Download PNG</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Elements
+    const fileInput = document.getElementById('file');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const resetAll = document.getElementById('resetAll');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Filters
+    const inputs = {
+      brightness: document.getElementById('brightness'),
+      contrast: document.getElementById('contrast'),
+      saturate: document.getElementById('saturate'),
+      grayscale: document.getElementById('grayscale'),
+      sepia: document.getElementById('sepia'),
+      blur: document.getElementById('blur')
+    };
+
+    // Value displays
+    const vals = {
+      'brightness': document.getElementById('val-bright'),
+      'contrast': document.getElementById('val-contrast'),
+      'saturate': document.getElementById('val-sat'),
+      'grayscale': document.getElementById('val-gray'),
+      'sepia': document.getElementById('val-sepia'),
+      'blur': document.getElementById('val-blur')
+    };
+
+    // Transform buttons
+    const rotateLeft = document.getElementById('rotateLeft');
+    const rotateRight = document.getElementById('rotateRight');
+    const flipH = document.getElementById('flipH');
+    const flipV = document.getElementById('flipV');
+
+    // Download buttons
+    const downloadPng = document.getElementById('downloadPng');
+    const downloadJpg = document.getElementById('downloadJpg');
+    const downloadSmall = document.getElementById('downloadSmall');
+
+    let img = new Image();
+    let imgLoaded = false;
+    let original = null; // store original image dataURL
+
+    // State for transforms
+    const state = {
+      rotation: 0, // degrees
+      flipX: 1, // 1 or -1
+      flipY: 1
+    };
+
+    // Helper: draw image with current filters & transforms
+    function render(){
+      if(!imgLoaded) {
+        // clear canvas
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = '#071425';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        return;
+      }
+
+      // compute filter string
+      const b = inputs.brightness.value;
+      const c = inputs.contrast.value;
+      const s = inputs.saturate.value;
+      const g = inputs.grayscale.value;
+      const sp = inputs.sepia.value;
+      const bl = inputs.blur.value;
+
+      // update labels
+      vals.brightness.textContent = b + '%';
+      vals.contrast.textContent = c + '%';
+      vals.saturate.textContent = s + '%';
+      vals.grayscale.textContent = g + '%';
+      vals.sepia.textContent = sp + '%';
+      vals.blur.textContent = bl + 'px';
+
+      // use ctx.filter for fast GPU-accelerated filters where supported
+      ctx.save();
+      // clear first
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // compute scale to fit canvas while preserving aspect
+      const canvasRatio = canvas.width / canvas.height;
+      const imgRatio = img.width / img.height;
+      let drawW = canvas.width, drawH = canvas.height;
+      if(imgRatio > canvasRatio){
+        drawW = canvas.width;
+        drawH = Math.round(canvas.width / imgRatio);
+      } else {
+        drawH = canvas.height;
+        drawW = Math.round(canvas.height * imgRatio);
+      }
+
+      const dx = (canvas.width - drawW) / 2;
+      const dy = (canvas.height - drawH) / 2;
+
+      // Apply transform: translate to center for rotation/flip
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.scale(state.flipX, state.flipY);
+      ctx.rotate(state.rotation * Math.PI/180);
+
+      // Set filters
+      const filterStr = `brightness(${b}%) contrast(${c}%) saturate(${s}%) grayscale(${g}%) sepia(${sp}%) blur(${bl}px)`;
+      ctx.filter = filterStr;
+
+      // Draw image centered
+      ctx.drawImage(img, -drawW/2, -drawH/2, drawW, drawH);
+
+      ctx.restore();
+    }
+
+    // Load image from file input
+    function handleFile(file){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        img = new Image();
+        img.onload = function(){
+          imgLoaded = true;
+
+          // adapt canvas size (max width capped)
+          const maxW = 1200; const maxH = 900;
+          let w = img.width, h = img.height;
+          if(w > maxW){
+            const ratio = maxW / w; w = Math.round(w * ratio); h = Math.round(h * ratio);
+          }
+          if(h > maxH){
+            const ratio = maxH / h; w = Math.round(w * ratio); h = Math.round(h * ratio);
+          }
+
+          canvas.width = Math.max(600, w);
+          canvas.height = Math.max(400, h);
+
+          // save original
+          original = e.target.result;
+
+          // reset transforms
+          state.rotation = 0; state.flipX = 1; state.flipY = 1;
+
+          render();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // wire upload button to hidden file input
+    uploadBtn.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', (ev)=>{
+      if(ev.target.files && ev.target.files[0]) handleFile(ev.target.files[0]);
+    });
+
+    // sliders
+    Object.values(inputs).forEach(inp=>{
+      inp.addEventListener('input', ()=> render());
+    });
+
+    // transforms
+    rotateLeft.addEventListener('click', ()=>{ state.rotation -= 90; render(); });
+    rotateRight.addEventListener('click', ()=>{ state.rotation += 90; render(); });
+    flipH.addEventListener('click', ()=>{ state.flipX *= -1; render(); });
+    flipV.addEventListener('click', ()=>{ state.flipY *= -1; render(); });
+
+    // reset
+    resetAll.addEventListener('click', ()=>{
+      if(!imgLoaded) return;
+      // restore default slider values
+      inputs.brightness.value = 100; inputs.contrast.value = 100; inputs.saturate.value = 100; inputs.grayscale.value = 0; inputs.sepia.value = 0; inputs.blur.value = 0;
+      state.rotation = 0; state.flipX = 1; state.flipY = 1;
+      if(original) {
+        img = new Image(); img.onload = ()=>{ render(); }; img.src = original;
+      }
+      render();
+    });
+
+    // quick download function
+    function download(filename, type='image/png', quality=0.92){
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL(type, quality);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    downloadPng.addEventListener('click', ()=>{
+      if(!imgLoaded) return alert('Please upload an image first.');
+      download('edited-image.png','image/png');
+    });
+    downloadJpg.addEventListener('click', ()=>{
+      if(!imgLoaded) return alert('Please upload an image first.');
+      download('edited-image.jpg','image/jpeg',0.92);
+    });
+    downloadSmall.addEventListener('click', ()=>{
+      if(!imgLoaded) return alert('Please upload an image first.');
+      download('edited-quick.png','image/png');
+    });
+
+    // Draw initial placeholder
+    (function placeholder(){
+      ctx.fillStyle = '#071425';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '18px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('No image yet — click "Choose file" to upload', canvas.width/2, canvas.height/2);
+    })();
+
+    // Allow drag & drop onto canvas
+    const canvasWrap = document.querySelector('.canvas-wrap');
+    canvasWrap.addEventListener('dragover', e=>{ e.preventDefault(); canvasWrap.style.outline = '2px dashed rgba(124,92,255,0.35)'; });
+    canvasWrap.addEventListener('dragleave', e=>{ canvasWrap.style.outline = 'none'; });
+    canvasWrap.addEventListener('drop', e=>{
+      e.preventDefault(); canvasWrap.style.outline = 'none';
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if(file) handleFile(file);
+    });
+
+    // Keyboard shortcuts (optional)
+    window.addEventListener('keydown',(e)=>{
+      if(e.ctrlKey && e.key === 'z'){ // do reset shortcut
+        e.preventDefault(); resetAll.click();
+      }
+    });
+    // ===========================
+// LOAD IMAGE FROM URL
+// ===========================
+const urlInput = document.getElementById("image-url");
+const loadUrlBtn = document.getElementById("load-url");
+
+loadUrlBtn.addEventListener("click", () => {
+    const url = urlInput.value.trim();
+    if (!url) {
+        alert("Please paste an image URL.");
+        return;
+    }
+
+    const tempImg = new Image();
+    tempImg.crossOrigin = "anonymous"; // Needed for many image hosts
+
+    tempImg.onload = function () {
+        img = tempImg;
+        imgLoaded = true;
+
+        // Resize canvas like file uploads do
+        const maxW = 1200;
+        const maxH = 900;
+        let w = img.width;
+        let h = img.height;
+
+        if (w > maxW) {
+            const ratio = maxW / w;
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+        }
+        if (h > maxH) {
+            const ratio = maxH / h;
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+        }
+
+        canvas.width = Math.max(600, w);
+        canvas.height = Math.max(400, h);
+
+        // Reset transforms
+        state.rotation = 0;
+        state.flipX = 1;
+        state.flipY = 1;
+
+        render();
+    };
+
+    tempImg.onerror = function () {
+        alert("Could not load the image. Make sure it ends in .jpg, .jpeg, or .png and supports CORS.");
+    };
+
+    tempImg.src = url;
+});
+
+
+  </script>
 </body>
+
 </html>
+
+

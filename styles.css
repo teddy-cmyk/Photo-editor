@@ -1,0 +1,162 @@
+/* ===== Photo Editor CSS (External Version) ===== */
+
+:root {
+  --bg: #0f1724;
+  --panel: #0b1220;
+  --muted: #98a0b3;
+  --accent: #7c5cff;
+  --glass: rgba(255, 255, 255, 0.03);
+  --card-radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Arial;
+}
+
+body {
+  background: linear-gradient(180deg, #071021 0%, #0f1724 100%);
+  color: #e6eef8;
+  display: flex;
+  align-items: stretch;
+  padding: 28px;
+}
+
+.app {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+/* Sidebar */
+.panel {
+  background: linear-gradient(180deg, var(--panel), #071425);
+  padding: 18px;
+  border-radius: var(--card-radius);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
+}
+
+h1 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control {
+  background: var(--glass);
+  padding: 10px;
+  border-radius: 12px;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), #5fd0ff);
+  color: #061226;
+  border: 0;
+}
+
+.small {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Canvas Area */
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.canvas-wrap {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+  padding: 14px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 520px;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(2, 6, 23, 0.7);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.left, .right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.file-input {
+  display: none;
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  padding: 12px;
+  border-radius: 12px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-wrap {
+    min-height: 360px;
+  }
+}
